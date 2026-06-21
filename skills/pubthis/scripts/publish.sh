@@ -133,9 +133,16 @@ add_file() {
 if [ -f "$TARGET" ]; then
   add_file "$TARGET" "$(basename "$TARGET")"
 elif [ -d "$TARGET" ]; then
-  find "$TARGET" -type f | sort | while IFS= read -r file_path; do
+  find "$TARGET" \
+    \( -type d \
+      \( -name .git -o -name node_modules -o -name target -o -name .next -o -name .nuxt -o -name .svelte-kit -o -name .cache -o -name .local -o -name .superpowers -o -name .claude -o -name .direnv \
+      \) -prune \
+    \) -o -type f -print | sort | while IFS= read -r file_path; do
     rel="${file_path#$TARGET/}"
-    [ "$rel" = ".DS_Store" ] && continue
+    case "$rel" in
+      .well-known/*|.herenow/*) ;;
+      ./*|.*|*/.DS_Store|.env|.env.*|*.pem|*.key|*.p12|*.pfx) continue ;;
+    esac
     add_file "$file_path" "$rel"
   done
 else
