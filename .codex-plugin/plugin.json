@@ -1,0 +1,6 @@
+{
+  "name": "pubthis",
+  "displayName": "pubthis.net",
+  "description": "Helper-first pubthis.net skill for Sites and Drives.",
+  "skills": ["skills/pubthis"]
+}

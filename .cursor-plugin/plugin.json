@@ -1,0 +1,6 @@
+{
+  "name": "pubthis",
+  "displayName": "pubthis.net",
+  "description": "Publish static Sites and manage private Drive files with pubthis.net.",
+  "skills": ["skills/pubthis"]
+}
