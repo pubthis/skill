@@ -2,7 +2,7 @@
 set -eu
 
 BASE_URL="${PUBTHIS_BASE_URL:-https://pubthis.net}"
-AUTH_VALUE="${PUBTHIS_AUTH_VALUE:-}"
+AUTH_VALUE="${PUBTHIS_API_KEY:-}"
 ALLOW_NON_PUBTHIS_BASE_URL=0
 SLUG=""
 CLIENT="pubthis-skill/publish-sh"
@@ -15,7 +15,7 @@ Usage: publish.sh <file-or-dir> [options]
 Options:
   --slug <slug>             DNS-safe share slug
   --base-url <url>          API base URL (default: https://pubthis.net or $PUBTHIS_BASE_URL)
-  --api-key <key>           API key (prefer $PUBTHIS_AUTH_VALUE)
+  --api-key <key>           API key (prefer $PUBTHIS_API_KEY)
   --client <name>           Agent/client name for diagnostics
   --allow-non-pubthis-base-url
                             Allow credentials to non-default base URL

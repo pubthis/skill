@@ -2,7 +2,7 @@
 set -eu
 
 BASE_URL="${PUBTHIS_BASE_URL:-https://pubthis.net}"
-AUTH_VALUE="${PUBTHIS_AUTH_VALUE:-}"
+AUTH_VALUE="${PUBTHIS_API_KEY:-}"
 DRIVE_TOKEN="${PUBTHIS_DRIVE_TOKEN:-}"
 ALLOW_NON_PUBTHIS_BASE_URL=0
 
@@ -11,7 +11,7 @@ usage() {
 Usage: drive.sh [global options] <command> [args]
 
 Global options:
-  --api-key <key>       Account API key (or $PUBTHIS_AUTH_VALUE)
+  --api-key <key>       Account API key (or $PUBTHIS_API_KEY)
   --token <token>       Drive token (or $PUBTHIS_DRIVE_TOKEN)
   --base-url <url>      API base URL
   --allow-non-pubthis-base-url
@@ -58,7 +58,7 @@ fi
 
 AUTH_VALUE_SELECTED="$AUTH_VALUE"
 [ -n "$DRIVE_TOKEN" ] && AUTH_VALUE_SELECTED="$DRIVE_TOKEN"
-[ -n "$AUTH_VALUE_SELECTED" ] || die "missing credentials; set PUBTHIS_AUTH_VALUE or PUBTHIS_DRIVE_TOKEN"
+[ -n "$AUTH_VALUE_SELECTED" ] || die "missing credentials; set PUBTHIS_API_KEY or PUBTHIS_DRIVE_TOKEN"
 AUTH="Authorization: Bearer $AUTH_VALUE_SELECTED"
 
 sha256_file() {

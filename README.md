@@ -35,3 +35,10 @@ The default is `https://pubthis.net`.
 ## License
 
 MIT
+
+## Evaluation prompts
+
+The skill-creator eval prompts live in `evals/evals.json`. They check that
+agents use helper scripts for ordinary publishing and Drive work, avoid custom
+API clients, and treat planned access-control workflows as reserved until live
+support exists.

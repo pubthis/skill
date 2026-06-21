@@ -40,7 +40,7 @@ Optional binaries: `file` for better content type detection.
 Environment variables:
 
 - `PUBTHIS_BASE_URL`: API base URL. Default: `https://pubthis.net`.
-- `PUBTHIS_AUTH_VALUE`: account/API bearer token for authenticated calls.
+- `PUBTHIS_API_KEY`: account/API bearer token for authenticated calls.
 - `PUBTHIS_DRIVE_TOKEN`: scoped Drive token for Drive reads/writes.
 
 ## Publish a Site

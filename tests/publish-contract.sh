@@ -11,7 +11,7 @@ SLUG="pubthis-skill-$(date +%s)-$$"
 OUT="$($ROOT/pubthis/scripts/publish.sh "$TMP" --slug "$SLUG" --base-url "$BASE_URL")"
 printf '%s\n' "$OUT" | grep "$SLUG" >/dev/null
 HOST="$(printf '%s' "$OUT" | awk -F/ '{print $3}')"
-BODY="$(curl -fsS -H "Host: $HOST" "$BASE_URL/index.html")"
+BODY="$(curl -fsS -H "Host: $HOST" "$BASE_URL/")"
 CSS="$(curl -fsS -H "Host: $HOST" "$BASE_URL/assets/app.css")"
 test "$BODY" = '<h1>pubthis skill publish</h1>'
 test "$CSS" = 'body{color:#111}'
