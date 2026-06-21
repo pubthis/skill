@@ -1,0 +1,35 @@
+{
+  "skill_name": "pubthis",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Publish this folder to pubthis.net and give me the URL.",
+      "expected_output": "Uses scripts/publish.sh rather than generating a custom publish client.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Publish this static app with slug my-demo.",
+      "expected_output": "Uses scripts/publish.sh with --slug my-demo and reports the returned canonical URL.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Save this report privately so another agent can read it.",
+      "expected_output": "Uses Drive workflow and explains private/scoped-token semantics.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Make this Site password-protected.",
+      "expected_output": "Recognizes the reserved planned workflow unless live API support is confirmed; does not fabricate a working command.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "The publish failed with invalid_share_slug.",
+      "expected_output": "Chooses a DNS-safe slug or omits slug, then retries through the helper.",
+      "files": []
+    }
+  ]
+}
