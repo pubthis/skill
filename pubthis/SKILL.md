@@ -32,7 +32,7 @@ Use live docs only when freshness matters or the task goes beyond this skill:
 
 ## Requirements
 
-Required binaries: `sh`, `curl`, `awk`, `wc`, `find`, `sort`, and one SHA-256
+Required binaries: `sh`, `curl`, `awk`, `wc`, `find`, `sort`, `jq`, and one SHA-256
 utility (`sha256sum` or `shasum`).
 
 Optional binaries: `file` for better content type detection.

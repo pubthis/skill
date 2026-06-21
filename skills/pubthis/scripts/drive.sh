@@ -32,6 +32,7 @@ die() { printf 'error: %s\n' "$1" >&2; exit 1; }
 require_arg() { [ "$#" -ge 2 ] && [ -n "$2" ] || die "$1 requires a value"; }
 need() { command -v "$1" >/dev/null 2>&1 || die "requires $1"; }
 need curl
+need jq
 need awk
 need wc
 
@@ -67,12 +68,18 @@ sha256_file() {
   else die "requires sha256sum or shasum"; fi
 }
 
-json_escape() {
-  awk 'BEGIN{for(i=1;i<ARGC;i++){s=ARGV[i]; gsub(/\\/,"\\\\",s); gsub(/"/,"\\\"",s); gsub(/\t/,"\\t",s); gsub(/\r/,"\\r",s); gsub(/\n/,"\\n",s); printf "%s",s}}' "$1"
-}
-
 urlencode_path() {
-  printf '%s' "$1" | sed 's#^/*##'
+  path="${1#/}"
+  out=""
+  old_ifs="$IFS"
+  IFS='/'
+  set -- $path
+  IFS="$old_ifs"
+  for part in "$@"; do
+    encoded="$(jq -nr --arg v "$part" '$v|@uri')"
+    if [ -z "$out" ]; then out="$encoded"; else out="$out/$encoded"; fi
+  done
+  printf '%s' "$out"
 }
 
 content_type() {
@@ -95,19 +102,36 @@ content_type() {
 api() {
   method="$1"
   url="$2"
-  body="${3:-}"
-  if [ -n "$body" ]; then
-    curl -fsS -X "$method" "$url" -H "$AUTH" -H 'content-type: application/json' -d "$body"
+  body_file="${3:-}"
+  if [ -n "$body_file" ]; then
+    curl -fsS -X "$method" "$url" -H "$AUTH" -H 'content-type: application/json' --data-binary "@$body_file"
   else
     curl -fsS -X "$method" "$url" -H "$AUTH"
   fi
 }
 
+api_string_body() {
+  tmp_body="$(mktemp)"
+  trap 'rm -f "$tmp_body"' EXIT HUP INT TERM
+  printf '%s' "$3" > "$tmp_body"
+  api "$1" "$2" "$tmp_body"
+  rm -f "$tmp_body"
+  trap - EXIT HUP INT TERM
+}
+
+current_file_etag() {
+  drive_id="$1"
+  drive_path="$2"
+  api GET "$BASE_URL/api/drives/$drive_id/files" \
+    | jq -r --arg p "/${drive_path#/}" '.files[]? | select(.path == $p) | .etag' \
+    | sed -n '1p'
+}
+
 case "$CMD" in
   create)
     NAME="${1:-Agent Files}"
-    BODY="{\"name\":\"$(json_escape "$NAME")\"}"
-    api POST "$BASE_URL/api/drives" "$BODY"
+    BODY="$(jq -n --arg name "$NAME" '{name:$name}')"
+    api_string_body POST "$BASE_URL/api/drives" "$BODY"
     ;;
   ls)
     if [ "$#" -eq 0 ]; then
@@ -135,12 +159,23 @@ case "$CMD" in
       esac
     done
     [ -n "$DRIVE_ID" ] && [ -n "$PATH_ARG" ] && [ -f "$FROM" ] || die "put requires drive id, path, and --from file"
-    CONTENT="$(cat "$FROM")"
+    if ! LC_ALL=C tr -d '\000' < "$FROM" | cmp -s - "$FROM"; then
+      die "Drive API currently accepts UTF-8 text content; binary files with NUL bytes are not supported by this helper"
+    fi
     SIZE="$(wc -c < "$FROM" | awk '{print $1}')"
     SHA="$(sha256_file "$FROM")"
     TYPE="$(content_type "$FROM")"
-    BODY="{\"content\":\"$(json_escape "$CONTENT")\",\"contentType\":\"$(json_escape "$TYPE")\",\"sha256\":\"$SHA\",\"sizeBytes\":$SIZE}"
-    api PUT "$BASE_URL/api/drives/$DRIVE_ID/files/$(urlencode_path "$PATH_ARG")" "$BODY"
+    ETAG="$(current_file_etag "$DRIVE_ID" "$PATH_ARG" || true)"
+    BODY_FILE="$(mktemp)"
+    if [ -n "$ETAG" ]; then
+      jq -n --rawfile content "$FROM" --arg type "$TYPE" --arg sha "$SHA" --argjson size "$SIZE" --arg etag "$ETAG" \
+        '{content:$content, contentType:$type, sha256:$sha, sizeBytes:$size, baseEtag:$etag}' > "$BODY_FILE"
+    else
+      jq -n --rawfile content "$FROM" --arg type "$TYPE" --arg sha "$SHA" --argjson size "$SIZE" \
+        '{content:$content, contentType:$type, sha256:$sha, sizeBytes:$size}' > "$BODY_FILE"
+    fi
+    api PUT "$BASE_URL/api/drives/$DRIVE_ID/files/$(urlencode_path "$PATH_ARG")" "$BODY_FILE"
+    rm -f "$BODY_FILE"
     ;;
   rm)
     DRIVE_ID="${1:-}"
@@ -170,8 +205,8 @@ case "$CMD" in
     [ -n "$DRIVE_ID" ] && [ -n "$PERMS" ] || die "share requires drive id and --perms read|write"
     case "$PERMS" in read) PERMS_JSON='["read"]' ;; write) PERMS_JSON='["read","write"]' ;; *) die "--perms must be read or write" ;; esac
     case "$PREFIX" in /*) ;; *) PREFIX="/$PREFIX" ;; esac
-    BODY="{\"label\":\"$(json_escape "$LABEL")\",\"prefix\":\"$(json_escape "$PREFIX")\",\"perms\":$PERMS_JSON}"
-    api POST "$BASE_URL/api/drives/$DRIVE_ID/tokens" "$BODY"
+    BODY="$(jq -n --arg label "$LABEL" --arg prefix "$PREFIX" --argjson perms "$PERMS_JSON" '{label:$label, prefix:$prefix, perms:$perms}')"
+    api_string_body POST "$BASE_URL/api/drives/$DRIVE_ID/tokens" "$BODY"
     ;;
   *)
     die "unknown command: $CMD"
