@@ -54,7 +54,7 @@ Run:
 With a chosen DNS-safe slug:
 
 ```sh
-./scripts/publish.sh <file-or-dir> --slug my-demo
+PUBTHIS_API_KEY=... ./scripts/publish.sh <file-or-dir> --slug my-demo
 ```
 
 To set the API base URL explicitly:
@@ -76,6 +76,8 @@ Path rules:
 
 Slug rules:
 
+- Anonymous publishing must omit `--slug`; pubthis.net chooses a human-readable slug.
+- Custom slugs require `PUBTHIS_API_KEY` or `--api-key` and use authenticated API-key publishing.
 - Slugs must be one lowercase DNS-safe label.
 - Allowed characters: `a-z`, `0-9`, and hyphen.
 - No dots, underscores, spaces, uppercase, leading hyphen, or trailing hyphen.
@@ -134,6 +136,7 @@ Branch on `code`, not message text.
 Common recovery:
 
 - `invalid_share_slug`: omit slug or choose a DNS-safe lowercase label.
+- `custom_slug_requires_auth`: retry with `PUBTHIS_API_KEY`/`--api-key`, or omit `--slug` for anonymous publishing.
 - `invalid_request`: compare the request to this skill or `/llms.txt`.
 - `upload_rejected`: recompute file bytes, size, content type, and SHA-256.
 - `unauthorized`: send a valid bearer token or use anonymous mode where allowed.

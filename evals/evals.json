@@ -10,7 +10,7 @@
     {
       "id": 2,
       "prompt": "Publish this static app with slug my-demo.",
-      "expected_output": "Uses scripts/publish.sh with --slug my-demo and reports the returned canonical URL.",
+      "expected_output": "Uses scripts/publish.sh with --slug my-demo only with PUBTHIS_API_KEY/API-key auth, or asks for credentials; otherwise omits slug and reports the returned canonical URL.",
       "files": []
     },
     {

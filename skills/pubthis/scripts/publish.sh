@@ -57,6 +57,9 @@ case "$SLUG" in
   *[!abcdefghijklmnopqrstuvwxyz0123456789-]*) die "slug must be lowercase DNS-safe a-z, 0-9, or hyphen" ;;
 esac
 if [ -n "$SLUG" ] && [ "${#SLUG}" -gt 63 ]; then die "slug must be 63 characters or fewer"; fi
+if [ -n "$SLUG" ] && [ -z "$AUTH_VALUE" ]; then
+  die "--slug requires PUBTHIS_API_KEY or --api-key; omit --slug for anonymous publishing"
+fi
 
 if [ -n "$AUTH_VALUE" ] && [ "$BASE_URL" != "https://pubthis.net" ] && [ "$ALLOW_NON_PUBTHIS_BASE_URL" -ne 1 ]; then
   die "refusing to send API key to non-default base URL; pass --allow-non-pubthis-base-url"
