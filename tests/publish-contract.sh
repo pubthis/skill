@@ -8,7 +8,7 @@ mkdir -p "$TMP/assets"
 printf '<h1>pubthis skill publish</h1>' >"$TMP/index.html"
 printf 'body{color:#111}' >"$TMP/assets/app.css"
 SLUG="pubthis-skill-$(date +%s)-$$"
-OUT="$($ROOT/pubthis/scripts/publish.sh "$TMP" --slug "$SLUG" --base-url "$BASE_URL")"
+OUT="$($ROOT/skills/pubthis/scripts/publish.sh "$TMP" --slug "$SLUG" --base-url "$BASE_URL")"
 printf '%s\n' "$OUT" | grep "$SLUG" >/dev/null
 HOST="$(printf '%s' "$OUT" | awk -F/ '{print $3}')"
 BODY="$(curl -fsS -H "Host: $HOST" "$BASE_URL/")"

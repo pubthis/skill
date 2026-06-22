@@ -4,8 +4,7 @@ Use this guide when editing the public pubthis.net skill repository.
 
 ## Source of truth
 
-- Canonical skill bundle: `pubthis/`
-- Compatibility mirror: `skills/pubthis/`
+- Canonical skill bundle: `skills/pubthis/`
 - Agent context: `https://pubthis.net/llms.txt`
 - API schema: `https://pubthis.net/openapi.json`
 
@@ -15,7 +14,6 @@ replacement for the helper-script golden path.
 
 ## Editing rules
 
-- Keep `pubthis/` and `skills/pubthis/` synchronized with `scripts/sync-mirror.sh`.
 - Public copy uses lowercase `pubthis.net`.
 - Do not add claims for OAuth, MCP, billing, custom-domain automation, or
   server-side compute unless those surfaces are live.
@@ -27,9 +25,9 @@ replacement for the helper-script golden path.
 Run:
 
 ```sh
-tests/sync-check.sh
 tests/planned-flags.sh
 PUBTHIS_BASE_URL=https://pubthis.net tests/publish-contract.sh
+npx --yes skills add . --list
 ```
 
 Run `tests/drive-contract.sh` only with a valid local API key or Drive token.

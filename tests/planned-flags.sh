@@ -8,12 +8,12 @@ trap 'rm -rf "$TMP"' EXIT
 printf '<h1>planned</h1>' > "$TMP/index.html"
 for flag in --access --password --ttl --spa; do
   if [ "$flag" = "--spa" ]; then
-    if "$ROOT/pubthis/scripts/publish.sh" "$TMP" "$flag" >"$OUT" 2>"$ERR"; then
+    if "$ROOT/skills/pubthis/scripts/publish.sh" "$TMP" "$flag" >"$OUT" 2>"$ERR"; then
       echo "expected $flag to fail" >&2
       exit 1
     fi
   else
-    if "$ROOT/pubthis/scripts/publish.sh" "$TMP" "$flag" value >"$OUT" 2>"$ERR"; then
+    if "$ROOT/skills/pubthis/scripts/publish.sh" "$TMP" "$flag" value >"$OUT" 2>"$ERR"; then
       echo "expected $flag to fail" >&2
       exit 1
     fi

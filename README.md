@@ -9,7 +9,7 @@ inventing custom API clients.
 ## Install
 
 ```sh
-npx skills add pubthis-agent-skill --skill pubthis -g
+npx skills add pubthis/skill
 ```
 
 For repo-local installs, omit `-g`.
@@ -17,10 +17,13 @@ For repo-local installs, omit `-g`.
 ## Use
 
 ```sh
-./pubthis/scripts/publish.sh ./site
-./pubthis/scripts/publish.sh ./site --slug my-demo
-./pubthis/scripts/drive.sh create "Agent Files"
+./skills/pubthis/scripts/publish.sh ./site
+PUBTHIS_API_KEY=... ./skills/pubthis/scripts/publish.sh ./site --slug my-demo
+./skills/pubthis/scripts/drive.sh create "Agent Files"
 ```
+
+Inside an installed skill, helper examples are relative to the skill directory,
+so the skill text uses `./scripts/...`.
 
 Set `PUBTHIS_BASE_URL` to target a local or self-hosted pubthis.net instance.
 The default is `https://pubthis.net`.
