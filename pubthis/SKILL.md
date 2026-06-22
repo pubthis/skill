@@ -57,7 +57,7 @@ With a chosen DNS-safe slug:
 ./scripts/publish.sh <file-or-dir> --slug my-demo
 ```
 
-For local development:
+To set the API base URL explicitly:
 
 ```sh
 PUBTHIS_BASE_URL=https://pubthis.net ./scripts/publish.sh <file-or-dir>

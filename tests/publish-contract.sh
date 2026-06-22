@@ -5,8 +5,8 @@ ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/assets"
-printf '<h1>pubthis skill publish</h1>' > "$TMP/index.html"
-printf 'body{color:#111}' > "$TMP/assets/app.css"
+printf '<h1>pubthis skill publish</h1>' >"$TMP/index.html"
+printf 'body{color:#111}' >"$TMP/assets/app.css"
 SLUG="pubthis-skill-$(date +%s)-$$"
 OUT="$($ROOT/pubthis/scripts/publish.sh "$TMP" --slug "$SLUG" --base-url "$BASE_URL")"
 printf '%s\n' "$OUT" | grep "$SLUG" >/dev/null
