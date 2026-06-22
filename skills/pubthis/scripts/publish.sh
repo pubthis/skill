@@ -206,4 +206,6 @@ printf 'publish_result.url=%s\n' "$URL" >&2
 printf 'publish_result.auth_mode=%s\n' "$AUTH_MODE" >&2
 printf 'publish_result.base_url=%s\n' "$BASE_URL" >&2
 printf 'publish_result.file_count=%s\n' "$(wc -l < "$MANIFEST" | awk '{print $1}')" >&2
-[ -n "$SLUG" ] && printf 'publish_result.slug=%s\n' "$SLUG" >&2
+if [ -n "$SLUG" ]; then
+  printf 'publish_result.slug=%s\n' "$SLUG" >&2
+fi
