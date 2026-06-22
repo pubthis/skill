@@ -43,6 +43,16 @@ Environment variables:
 - `PUBTHIS_API_KEY`: account/API bearer token for authenticated calls.
 - `PUBTHIS_DRIVE_TOKEN`: scoped Drive token for Drive reads/writes.
 
+Base URL priority:
+
+1. `--base-url <url>`
+2. `PUBTHIS_BASE_URL`
+3. `https://pubthis.net`
+
+Anonymous publishing may use a self-hosted base URL directly. Sending
+`PUBTHIS_API_KEY`, `--api-key`, or `PUBTHIS_DRIVE_TOKEN` to a non-default base
+URL requires `--allow-non-pubthis-base-url`.
+
 ## Publish a Site
 
 Run:

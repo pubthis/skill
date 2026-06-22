@@ -25,8 +25,15 @@ PUBTHIS_API_KEY=... ./skills/pubthis/scripts/publish.sh ./site --slug my-demo
 Inside an installed skill, helper examples are relative to the skill directory,
 so the skill text uses `./scripts/...`.
 
-Set `PUBTHIS_BASE_URL` to target a local or self-hosted pubthis.net instance.
-The default is `https://pubthis.net`.
+Base URL priority:
+
+1. `--base-url <url>`
+2. `PUBTHIS_BASE_URL`
+3. `https://pubthis.net`
+
+Anonymous publishing may use a self-hosted base URL directly. Sending
+`PUBTHIS_API_KEY`, `--api-key`, or `PUBTHIS_DRIVE_TOKEN` to a non-default base
+URL requires `--allow-non-pubthis-base-url`.
 
 ## Current surfaces
 
