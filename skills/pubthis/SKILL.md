@@ -43,15 +43,51 @@ Environment variables:
 - `PUBTHIS_API_KEY`: account/API bearer token for authenticated calls.
 - `PUBTHIS_DRIVE_TOKEN`: scoped Drive token for Drive reads/writes.
 
-Base URL priority:
+Base URL and API key priority for `publish.sh`:
 
-1. `--base-url <url>`
-2. `PUBTHIS_BASE_URL`
-3. `https://pubthis.net`
+1. CLI flags: `--base-url <url>` and `--api-key <key>`
+2. Environment: `PUBTHIS_BASE_URL` and `PUBTHIS_API_KEY`
+3. Global config: `${XDG_CONFIG_HOME:-$HOME/.config}/pubthis/config.json`
+4. Defaults: `https://pubthis.net` and anonymous publishing
+
+Global config is read unless `--no-global-config` is passed. It may provide:
+
+```json
+{"baseUrl":"https://pubthis.net","apiKey":"..."}
+```
 
 Anonymous publishing may use a self-hosted base URL directly. Sending
-`PUBTHIS_API_KEY`, `--api-key`, or `PUBTHIS_DRIVE_TOKEN` to a non-default base
-URL requires `--allow-non-pubthis-base-url`.
+`PUBTHIS_API_KEY`, `--api-key`, a global config `apiKey`, or `PUBTHIS_DRIVE_TOKEN`
+to a non-default base URL requires `--allow-non-pubthis-base-url`.
+
+## Configure pubthis
+
+Use `configure.sh` when the user asks the agent to remember pubthis settings for
+future publishes. Prefer environment or stdin for API keys so tokens do not land
+in shell history.
+
+One-time global account config:
+
+```sh
+PUBTHIS_API_KEY=ptk_... ./scripts/configure.sh global
+printf '%s\n' "$PUBTHIS_API_KEY" | ./scripts/configure.sh global --api-key-stdin
+./scripts/configure.sh global --base-url https://pubthis.net
+```
+
+This writes `${XDG_CONFIG_HOME:-$HOME/.config}/pubthis/config.json` with file
+mode `0600`. The helper never prints the API key.
+
+Per-directory publish config:
+
+```sh
+./scripts/configure.sh project ./site --slug launch-notes --unlisted
+./scripts/configure.sh project ./site --visibility public
+```
+
+This writes `./site/.pubthis/config.json`. Existing configured keys are not
+changed unless `--force` is passed. `configure.sh` validates slug and visibility
+before writing. Writing a custom slug config does not require an API key, but
+publishing with that slug still requires authenticated publishing.
 
 ## Publish a Site
 
@@ -65,6 +101,12 @@ With a chosen DNS-safe slug:
 
 ```sh
 PUBTHIS_API_KEY=... ./scripts/publish.sh <file-or-dir> --slug my-demo
+```
+
+With unlisted visibility:
+
+```sh
+./scripts/publish.sh <file-or-dir> --visibility unlisted
 ```
 
 To set the API base URL explicitly:
@@ -83,6 +125,35 @@ Path rules:
 - Bundled app assets under `assets/...` stay under `assets/...`.
 - Use the returned URL as the root for links.
 - Do not rewrite share links onto the service apex.
+- For directory publishes, `.pubthis/config.json` is local control-plane metadata and is not uploaded. Other `.pubthis/*` files are not skipped by this rule.
+
+Project publish config is read from `<publish-root>/.pubthis/config.json` unless
+`--no-project-config` is passed. It applies only to the explicit target directory
+root; the helper does not walk upward. Single-file publishes ignore project
+config unless `--config <path>` is supplied. Project config may provide:
+
+```json
+{"slug":"my-demo","visibility":"unlisted"}
+```
+
+`--config <path>` supplies an explicit config for either file or directory
+targets. It may provide `slug` and `visibility`, and may also provide `baseUrl`
+or `apiKey`; CLI flags and environment variables still take precedence for
+`baseUrl` and `apiKey`.
+
+Publish field precedence:
+
+1. CLI flags: `--slug` and `--visibility`
+2. Explicit `--config <path>` or directory project config
+3. Defaults: generated slug and public visibility
+
+Visibility rules:
+
+- Supported values are `public` and `unlisted`.
+- `public` is the default.
+- `unlisted` Sites are accessible to anyone with the URL but omitted from public discovery/listing surfaces.
+- Anonymous `--visibility unlisted` publishes are allowed and receive generated slugs.
+- Custom slugs still require `PUBTHIS_API_KEY`, `--api-key`, or global/explicit config `apiKey`.
 
 Slug rules:
 
@@ -120,7 +191,6 @@ claim they work unless live docs or API responses confirm support:
 - restricted invite-only Sites
 - Site access-policy updates
 - custom domains
-- profile and Site visibility
 - richer owner Site management
 
 `publish.sh` may expose reserved flags such as `--access`, `--password`, `--ttl`,

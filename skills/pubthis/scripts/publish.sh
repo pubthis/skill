@@ -3,8 +3,18 @@ set -eu
 
 BASE_URL="${PUBTHIS_BASE_URL:-https://pubthis.net}"
 AUTH_VALUE="${PUBTHIS_API_KEY:-}"
+BASE_URL_FROM_ENV=0
+API_KEY_FROM_ENV=0
+[ -n "${PUBTHIS_BASE_URL:-}" ] && BASE_URL_FROM_ENV=1
+[ -n "${PUBTHIS_API_KEY:-}" ] && API_KEY_FROM_ENV=1
+BASE_URL_FROM_CLI=0
+API_KEY_FROM_CLI=0
 ALLOW_NON_PUBTHIS_BASE_URL=0
 SLUG=""
+VISIBILITY=""
+EXPLICIT_CONFIG=""
+GLOBAL_CONFIG_ENABLED=1
+PROJECT_CONFIG_ENABLED=1
 CLIENT="pubthis-skill/publish-sh"
 TARGET=""
 
@@ -14,6 +24,10 @@ Usage: publish.sh <file-or-dir> [options]
 
 Options:
   --slug <slug>             DNS-safe share slug
+  --visibility <value>      Site visibility: public or unlisted
+  --config <path>           Explicit publish config JSON
+  --no-project-config       Do not read <publish-root>/.pubthis/config.json
+  --no-global-config        Do not read ${XDG_CONFIG_HOME:-$HOME/.config}/pubthis/config.json
   --base-url <url>          API base URL (default: https://pubthis.net or $PUBTHIS_BASE_URL)
   --api-key <key>           API key (prefer $PUBTHIS_API_KEY)
   --client <name>           Agent/client name for diagnostics
@@ -33,8 +47,12 @@ require_arg() { [ "$#" -ge 2 ] && [ -n "$2" ] || die "$1 requires a value"; }
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --slug) require_arg "$1" "${2:-}"; SLUG="$2"; shift 2 ;;
-    --base-url) require_arg "$1" "${2:-}"; BASE_URL="$2"; shift 2 ;;
-    --api-key) require_arg "$1" "${2:-}"; AUTH_VALUE="$2"; shift 2 ;;
+    --visibility) require_arg "$1" "${2:-}"; VISIBILITY="$2"; shift 2 ;;
+    --config) require_arg "$1" "${2:-}"; EXPLICIT_CONFIG="$2"; shift 2 ;;
+    --no-project-config) PROJECT_CONFIG_ENABLED=0; shift ;;
+    --no-global-config) GLOBAL_CONFIG_ENABLED=0; shift ;;
+    --base-url) require_arg "$1" "${2:-}"; BASE_URL="$2"; BASE_URL_FROM_CLI=1; shift 2 ;;
+    --api-key) require_arg "$1" "${2:-}"; AUTH_VALUE="$2"; API_KEY_FROM_CLI=1; shift 2 ;;
     --client) require_arg "$1" "${2:-}"; CLIENT="$2"; shift 2 ;;
     --allow-non-pubthis-base-url) ALLOW_NON_PUBTHIS_BASE_URL=1; shift ;;
     --access) planned "--access" ;;
@@ -49,7 +67,56 @@ done
 
 [ -n "$TARGET" ] || { usage >&2; exit 1; }
 [ -e "$TARGET" ] || die "path does not exist: $TARGET"
+
+need_jq_for_config() { command -v jq >/dev/null 2>&1 || die "requires jq"; }
+config_value() {
+  file="$1"
+  key="$2"
+  [ -f "$file" ] || return 0
+  need_jq_for_config
+  jq -r --arg key "$key" 'if type == "object" and has($key) and .[$key] != null then .[$key] else empty end' "$file"
+}
+apply_base_auth_config() {
+  file="$1"
+  [ -f "$file" ] || return 0
+  value="$(config_value "$file" baseUrl)"
+  if [ -n "$value" ] && [ "$BASE_URL_FROM_CLI" -eq 0 ] && [ "$BASE_URL_FROM_ENV" -eq 0 ]; then
+    BASE_URL="$value"
+  fi
+  value="$(config_value "$file" apiKey)"
+  if [ -n "$value" ] && [ "$API_KEY_FROM_CLI" -eq 0 ] && [ "$API_KEY_FROM_ENV" -eq 0 ]; then
+    AUTH_VALUE="$value"
+  fi
+}
+apply_publish_config() {
+  file="$1"
+  [ -f "$file" ] || return 0
+  value="$(config_value "$file" slug)"
+  if [ -n "$value" ] && [ -z "$SLUG" ]; then
+    SLUG="$value"
+  fi
+  value="$(config_value "$file" visibility)"
+  if [ -n "$value" ] && [ -z "$VISIBILITY" ]; then
+    VISIBILITY="$value"
+  fi
+}
+
+GLOBAL_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/pubthis/config.json"
+[ "$GLOBAL_CONFIG_ENABLED" -eq 1 ] && apply_base_auth_config "$GLOBAL_CONFIG"
+if [ -n "$EXPLICIT_CONFIG" ]; then
+  [ -f "$EXPLICIT_CONFIG" ] || die "config file does not exist: $EXPLICIT_CONFIG"
+  apply_base_auth_config "$EXPLICIT_CONFIG"
+  apply_publish_config "$EXPLICIT_CONFIG"
+elif [ "$PROJECT_CONFIG_ENABLED" -eq 1 ] && [ -d "$TARGET" ]; then
+  apply_publish_config "$TARGET/.pubthis/config.json"
+fi
+
 BASE_URL="${BASE_URL%/}"
+
+case "$VISIBILITY" in
+  ""|public|unlisted) ;;
+  *) die "visibility must be public or unlisted" ;;
+esac
 
 case "$SLUG" in
   "") ;;
@@ -139,6 +206,7 @@ elif [ -d "$TARGET" ]; then
   find "$TARGET" -type f | sort | while IFS= read -r file_path; do
     rel="${file_path#$TARGET/}"
     [ "$rel" = ".DS_Store" ] && continue
+    [ "$rel" = ".pubthis/config.json" ] && continue
     add_file "$file_path" "$rel"
   done
 else
@@ -162,6 +230,7 @@ fi
 
 CREATE_BODY="{\"mode\":\"create\",\"authMode\":\"$AUTH_MODE\",\"files\":[$FILES_JSON]"
 [ -n "$SLUG" ] && CREATE_BODY="$CREATE_BODY,\"slug\":\"$(json_escape "$SLUG")\""
+[ -n "$VISIBILITY" ] && CREATE_BODY="$CREATE_BODY,\"visibility\":\"$(json_escape "$VISIBILITY")\""
 CREATE_BODY="$CREATE_BODY}"
 
 CREATE_RESPONSE="$TMP/create.json"
