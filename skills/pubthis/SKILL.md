@@ -56,9 +56,9 @@ Global config is read unless `--no-global-config` is passed. It may provide:
 {"baseUrl":"https://pubthis.net","apiKey":"..."}
 ```
 
-Anonymous publishing may use a self-hosted base URL directly. Sending
-`PUBTHIS_API_KEY`, `--api-key`, a global config `apiKey`, or `PUBTHIS_DRIVE_TOKEN`
-to a non-default base URL requires `--allow-non-pubthis-base-url`.
+Self-hosted pubthis deployments work the same way as pubthis.net. Set `baseUrl`
+in global config for the user's usual endpoint, or pass `--base-url` /
+`PUBTHIS_BASE_URL` for one publish.
 
 ## Configure pubthis
 

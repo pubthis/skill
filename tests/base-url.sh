@@ -11,13 +11,16 @@ if PUBTHIS_BASE_URL="http://127.0.0.1:9" "$ROOT/skills/pubthis/scripts/publish.s
   echo "unexpected success against closed local port" >&2
   exit 1
 fi
-if grep -F "refusing to send API key to non-default base URL" "$ERR" >/dev/null; then
-  echo "anonymous self-hosted publish should not require allow flag" >&2
+if grep -F "refusing to send" "$ERR" >/dev/null; then
+  echo "self-hosted anonymous publish should not require an allow flag" >&2
   exit 1
 fi
 
 if PUBTHIS_BASE_URL="http://127.0.0.1:9" PUBTHIS_API_KEY="test-key" "$ROOT/skills/pubthis/scripts/publish.sh" "$TMP" >"$OUT" 2>"$ERR"; then
-  echo "expected credentialed non-default base URL to fail" >&2
+  echo "unexpected success against closed local port" >&2
   exit 1
 fi
-grep -F "refusing to send API key to non-default base URL" "$ERR" >/dev/null
+if grep -F "refusing to send" "$ERR" >/dev/null; then
+  echo "self-hosted authenticated publish should not require an allow flag" >&2
+  exit 1
+fi

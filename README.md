@@ -97,10 +97,9 @@ Base URL and API key priority for publishing:
 3. Global config: `${XDG_CONFIG_HOME:-$HOME/.config}/pubthis/config.json`
 4. Defaults: `https://pubthis.net` and anonymous publishing
 
-Anonymous publishing can use a self-hosted base URL directly. Sending
-`PUBTHIS_API_KEY`, `--api-key`, a global config `apiKey`, or
-`PUBTHIS_DRIVE_TOKEN` to a non-default base URL requires
-`--allow-non-pubthis-base-url`.
+Self-hosted pubthis deployments work the same way as pubthis.net. Set `baseUrl`
+in global config for the usual endpoint, or pass `--base-url`/`PUBTHIS_BASE_URL`
+for one publish.
 
 Visibility values currently supported by the API are `public` and `unlisted`.
 Unlisted Sites are available to anyone with the URL, but are omitted from public

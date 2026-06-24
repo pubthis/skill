@@ -9,7 +9,6 @@ API_KEY_FROM_ENV=0
 [ -n "${PUBTHIS_API_KEY:-}" ] && API_KEY_FROM_ENV=1
 BASE_URL_FROM_CLI=0
 API_KEY_FROM_CLI=0
-ALLOW_NON_PUBTHIS_BASE_URL=0
 SLUG=""
 VISIBILITY=""
 EXPLICIT_CONFIG=""
@@ -31,8 +30,6 @@ Options:
   --base-url <url>          API base URL (default: https://pubthis.net or $PUBTHIS_BASE_URL)
   --api-key <key>           API key (prefer $PUBTHIS_API_KEY)
   --client <name>           Agent/client name for diagnostics
-  --allow-non-pubthis-base-url
-                            Allow credentials to non-default base URL
   --access <mode>           Planned: public|password|restricted
   --password <value>        Planned: password-protected Sites
   --ttl <seconds>           Planned: authenticated expiry control
@@ -54,7 +51,6 @@ while [ "$#" -gt 0 ]; do
     --base-url) require_arg "$1" "${2:-}"; BASE_URL="$2"; BASE_URL_FROM_CLI=1; shift 2 ;;
     --api-key) require_arg "$1" "${2:-}"; AUTH_VALUE="$2"; API_KEY_FROM_CLI=1; shift 2 ;;
     --client) require_arg "$1" "${2:-}"; CLIENT="$2"; shift 2 ;;
-    --allow-non-pubthis-base-url) ALLOW_NON_PUBTHIS_BASE_URL=1; shift ;;
     --access) planned "--access" ;;
     --password) planned "--password" ;;
     --ttl) planned "--ttl" ;;
@@ -126,10 +122,6 @@ esac
 if [ -n "$SLUG" ] && [ "${#SLUG}" -gt 63 ]; then die "slug must be 63 characters or fewer"; fi
 if [ -n "$SLUG" ] && [ -z "$AUTH_VALUE" ]; then
   die "--slug requires PUBTHIS_API_KEY or --api-key; omit --slug for anonymous publishing"
-fi
-
-if [ -n "$AUTH_VALUE" ] && [ "$BASE_URL" != "https://pubthis.net" ] && [ "$ALLOW_NON_PUBTHIS_BASE_URL" -ne 1 ]; then
-  die "refusing to send API key to non-default base URL; pass --allow-non-pubthis-base-url"
 fi
 
 need() { command -v "$1" >/dev/null 2>&1 || die "requires $1"; }

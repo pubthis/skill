@@ -4,7 +4,6 @@ set -eu
 BASE_URL="${PUBTHIS_BASE_URL:-https://pubthis.net}"
 AUTH_VALUE="${PUBTHIS_API_KEY:-}"
 DRIVE_TOKEN="${PUBTHIS_DRIVE_TOKEN:-}"
-ALLOW_NON_PUBTHIS_BASE_URL=0
 
 usage() {
   cat <<'USAGE'
@@ -14,7 +13,6 @@ Global options:
   --api-key <key>       Account API key (or $PUBTHIS_API_KEY)
   --token <token>       Drive token (or $PUBTHIS_DRIVE_TOKEN)
   --base-url <url>      API base URL
-  --allow-non-pubthis-base-url
 
 Commands:
   create [name]
@@ -41,7 +39,6 @@ while [ "$#" -gt 0 ]; do
     --api-key) require_arg "$1" "${2:-}"; AUTH_VALUE="$2"; shift 2 ;;
     --token) require_arg "$1" "${2:-}"; DRIVE_TOKEN="$2"; shift 2 ;;
     --base-url) require_arg "$1" "${2:-}"; BASE_URL="$2"; shift 2 ;;
-    --allow-non-pubthis-base-url) ALLOW_NON_PUBTHIS_BASE_URL=1; shift ;;
     --help|-h) usage; exit 0 ;;
     --*) die "unknown global option: $1" ;;
     *) break ;;
@@ -52,10 +49,6 @@ CMD="${1:-}"
 [ -n "$CMD" ] || { usage >&2; exit 1; }
 shift || true
 BASE_URL="${BASE_URL%/}"
-
-if [ "$BASE_URL" != "https://pubthis.net" ] && [ "$ALLOW_NON_PUBTHIS_BASE_URL" -ne 1 ] && { [ -n "$AUTH_VALUE" ] || [ -n "$DRIVE_TOKEN" ]; }; then
-  die "refusing to send credentials to non-default base URL; pass --allow-non-pubthis-base-url"
-fi
 
 AUTH_VALUE_SELECTED="$AUTH_VALUE"
 [ -n "$DRIVE_TOKEN" ] && AUTH_VALUE_SELECTED="$DRIVE_TOKEN"

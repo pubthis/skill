@@ -71,7 +71,7 @@ if jq -e 'has("slug") or has("visibility") or .authMode != "anonymous"' "$TMP/cr
   exit 1
 fi
 
-PUBTHIS_CAPTURE="$TMP" HOME="$TMP/home" XDG_CONFIG_HOME="$TMP/home/.config" PATH="$TMP/bin:$PATH" "$SCRIPT" "$TMP/site/index.html" --config "$TMP/explicit.json" --allow-non-pubthis-base-url >/dev/null
+PUBTHIS_CAPTURE="$TMP" HOME="$TMP/home" XDG_CONFIG_HOME="$TMP/home/.config" PATH="$TMP/bin:$PATH" "$SCRIPT" "$TMP/site/index.html" --config "$TMP/explicit.json" >/dev/null
 jq -e '.slug == "explicit-file" and .visibility == "unlisted" and .authMode == "api_key"' "$TMP/create.json" >/dev/null
 grep -F 'https://explicit.example/api/publish' "$TMP/url.txt" >/dev/null
 grep -F 'Authorization: Bearer explicit-token' "$TMP/auth.txt" >/dev/null
